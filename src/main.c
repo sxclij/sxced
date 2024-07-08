@@ -76,25 +76,34 @@ void node_delete() {
 
 void init() {
     term_init();
+    printf("\e[>5h");
 
-    for (uint32_t i = 0; i < nodes_capacity; i++) {
+    for (uint32_t i = 0; i < nodes_capacity; i++)
         nodes_passive[i] = &nodes[i];
-    }
     nodes_target = &nodes[0];
 }
 
-void update_rendering() {
-    struct node* this = nodes_target;
+void update_rendering_clear() {
     printf("\e[1;1H");
+    for (uint32_t i = 0; i < 10; i++) {
+        for (uint32_t j = 0; j < 32; j++)
+            putchar(' ');
+        putchar('\n');
+    }
+    printf("\e[1;1H");
+}
+void update_rendering() {
+    update_rendering_clear();
+    struct node* this = nodes_target;
     while (this->prev != NULL)
         this = this->prev;
-    while (this->next != NULL) {
-        if (this->ch == '\n')
-            putchar(' ');
+    while (this != NULL) {
+        if (this == nodes_target)
+            putchar('|');
         putchar(this->ch);
         this = this->next;
     }
-    printf("| ");
+    printf(" \n ");
 }
 void update_input() {
     char input[term_capacity];
@@ -102,8 +111,20 @@ void update_input() {
     for (uint32_t i = 0; i < input_size; i++) {
         char ch = input[i];
         switch (ch) {
+            case 27:
+                ch = input[++i];
+                if (ch == '[') {
+                    ch = input[++i];
+                    if (ch == 'D')
+                        if (nodes_target->prev != NULL)
+                            nodes_target = nodes_target->prev;
+                    if (ch == 'C')
+                        if (nodes_target->next != NULL)
+                            nodes_target = nodes_target->next;
+                }
+                break;
             case '\b':
-            case '\177':
+            case 127:
                 node_delete();
                 break;
             default:
