@@ -19,6 +19,7 @@ size_t term_read(char* dst) {
     return read(STDIN_FILENO, dst, term_capacity);
 }
 void term_init() {
+    atexit(term_exit);
     tcgetattr(STDIN_FILENO, &term.old);
     term.new = term.old;
     term.new.c_lflag &= ~(ICANON | ECHO);
@@ -86,7 +87,7 @@ void init() {
 void update_rendering_clear() {
     printf("\e[1;1H");
     for (uint32_t i = 0; i < 10; i++) {
-        for (uint32_t j = 0; j < 32; j++)
+        for (uint32_t j = 0; j < 64; j++)
             putchar(' ');
         putchar('\n');
     }
@@ -103,7 +104,7 @@ void update_rendering() {
         putchar(this->ch);
         this = this->next;
     }
-    printf(" \n ");
+    fflush(stdout);
 }
 void update_input() {
     char input[term_capacity];
