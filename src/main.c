@@ -59,22 +59,19 @@ void node_insert(char ch) {
     this->next = nodes_target;
     this->prev = nodes_target->prev;
     next->prev = this;
-    if (prev != NULL) {
+    if (prev != NULL)
         prev->next = this;
-    }
 }
 void node_delete() {
-    if (nodes_target->prev == NULL) {
+    if (nodes_target->prev == NULL)
         return;
-    }
     struct node* this = nodes_target->prev;
     struct node* next = this->next;
     struct node* prev = this->prev;
     nodes_passive[nodes_passive_size++] = this;
     next->prev = prev;
-    if (prev != NULL) {
+    if (prev != NULL)
         prev->next = next;
-    }
 }
 
 void init() {
@@ -89,14 +86,15 @@ void init() {
 void update_rendering() {
     struct node* this = nodes_target;
     printf("\e[1;1H");
-    while (this->prev != NULL) {
+    while (this->prev != NULL)
         this = this->prev;
-    }
     while (this->next != NULL) {
+        if (this->ch == '\n')
+            putchar(' ');
         putchar(this->ch);
         this = this->next;
     }
-    puts(" \n ");
+    printf("| ");
 }
 void update_input() {
     char input[term_capacity];
