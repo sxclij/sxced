@@ -63,6 +63,19 @@ void node_insert(char ch) {
         prev->next = this;
     }
 }
+void node_delete() {
+    if (nodes_target->prev == NULL) {
+        return;
+    }
+    struct node* this = nodes_target->prev;
+    struct node* next = this->next;
+    struct node* prev = this->prev;
+    nodes_passive[nodes_passive_size++] = this;
+    next->prev = prev;
+    if (prev != NULL) {
+        prev->next = next;
+    }
+}
 
 void init() {
     term_init();
@@ -89,7 +102,16 @@ void update_input() {
     char input[term_capacity];
     uint32_t input_size = term_read(input);
     for (uint32_t i = 0; i < input_size; i++) {
-        node_insert(input[i]);
+        char ch = input[i];
+        switch (ch) {
+            case '\b':
+            case '\177':
+                node_delete();
+                break;
+            default:
+                node_insert(ch);
+                break;
+        }
     }
 }
 void update() {
@@ -100,10 +122,7 @@ void update() {
 
 int main() {
     init();
-
     while (1) {
         update();
     }
-
-    return 0;
 }
