@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #define term_capacity 65536
+#define nodes_capacity 65536
 
 #ifdef __unix__
 #include <termios.h>
@@ -28,7 +29,7 @@ void term_init() {
 #endif
 #ifdef _WIN32
 #include <conio.h>
-void term_exit(){};
+void term_exit() {};
 size_t term_read(char* dst) {
     size_t i;
     for (i = 0; kbhit() && i < term_capacity; i++) {
@@ -36,13 +37,73 @@ size_t term_read(char* dst) {
     }
     return i;
 };
-void term_init(){};
+void term_init() {};
 #endif
+
+struct node {
+    struct node* next;
+    struct node* prev;
+    char ch;
+};
+
+static struct node nodes[nodes_capacity];
+static struct node* nodes_passive[nodes_capacity];
+static struct node* nodes_target;
+uint32_t nodes_passive_size = nodes_capacity;
+
+void node_insert(char ch) {
+    struct node* this = nodes_passive[--nodes_passive_size];
+    struct node* next = nodes_target;
+    struct node* prev = nodes_target->prev;
+    this->ch = ch;
+    this->next = nodes_target;
+    this->prev = nodes_target->prev;
+    next->prev = this;
+    if (prev != NULL) {
+        prev->next = this;
+    }
+}
 
 void init() {
     term_init();
+
+    for (uint32_t i = 0; i < nodes_capacity; i++) {
+        nodes_passive[i] = &nodes[i];
+    }
+    nodes_target = &nodes[0];
+}
+
+void update_rendering() {
+    struct node* this = nodes_target;
+    printf("\e[1;1H");
+    while (this->prev != NULL) {
+        this = this->prev;
+    }
+    while (this->next != NULL) {
+        putchar(this->ch);
+        this = this->next;
+    }
+    puts(" \n ");
+}
+void update_input() {
+    char input[term_capacity];
+    uint32_t input_size = term_read(input);
+    for (uint32_t i = 0; i < input_size; i++) {
+        node_insert(input[i]);
+    }
+}
+void update() {
+    update_input();
+    update_rendering();
+    usleep(1000);
 }
 
 int main() {
     init();
+
+    while (1) {
+        update();
+    }
+
+    return 0;
 }
