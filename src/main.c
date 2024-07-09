@@ -124,15 +124,24 @@ void input_normal(uint32_t str) {
 }
 void input_insert(uint32_t str) {
     switch (str % 256) {
-        case 27:
+        case 27:  // escape
             g.mode = mode_normal;
             break;
         case '\b':
-        case 127:
+        case 127:  // backspace
             node_delete();
             break;
         default:
             node_insert(str);
+            break;
+    }
+    switch (str % 65536) {
+        case 27242:  // jj
+            node_delete();
+            node_delete();
+            g.mode = mode_normal;
+            break;
+        default:
             break;
     }
 }
@@ -163,13 +172,14 @@ void rendering_clear() {
     }
     printf("\e[1;1H");
 }
-void rendering() {
-    rendering_clear();
+void rendering_top() {
     if (g.mode == mode_insert) {
         printf("---[mode:insert]---\n");
     } else if (g.mode == mode_normal) {
         printf("---[mode:normal]---\n");
     }
+}
+void rendering_body() {
     struct node* this = g.nodes_target;
     while (this->prev != NULL) {
         this = this->prev;
@@ -181,6 +191,11 @@ void rendering() {
         putchar(this->ch);
         this = this->next;
     }
+}
+void rendering() {
+    rendering_clear();
+    rendering_top();
+    rendering_body();
     fflush(stdout);
 }
 
