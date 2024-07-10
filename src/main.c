@@ -104,6 +104,10 @@ void input_normal(uint32_t str) {
                 g.nodes_target = g.nodes_target->next;
             }
             break;
+        case 'x':
+            input_normal('l');
+            node_delete(127);
+            break;
         case 'i':
             g.mode = mode_insert;
             break;
