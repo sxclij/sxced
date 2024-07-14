@@ -5,6 +5,8 @@
 
 #define term_capacity 65536
 #define nodes_capacity 65536
+#define rendering_size_y 11
+#define renderingbody_size_y 10
 
 #ifdef __unix__
 #include <termios.h>
@@ -168,7 +170,7 @@ void input_readterm() {
 
 void rendering_clear() {
     printf("\e[1;1H");
-    for (uint32_t i = 0; i < 10; i++) {
+    for (uint32_t i = 0; i < rendering_size_y; i++) {
         for (uint32_t j = 0; j < 64; j++) {
             putchar(' ');
         }
@@ -185,10 +187,30 @@ void rendering_top() {
 }
 void rendering_body() {
     struct node* this = g.nodes_target;
-    while (this->prev != NULL) {
+    uint32_t y = renderingbody_size_y-3;
+    while (1) {
+        if (this->prev == NULL) {
+            y=0;
+            break;
+        }
+        if (y == 0 && this->prev->ch == '\n') {
+            break;
+        }
+        if (this->ch == '\n' && this != g.nodes_target) {
+            y--;
+        }
         this = this->prev;
     }
-    while (this != NULL) {
+    while (1) {
+        if (this == NULL) {
+            break;
+        }
+        if (this->ch == '\n') {
+            y++;
+        }
+        if (y == renderingbody_size_y) {
+            break;
+        }
         if (this == g.nodes_target) {
             putchar('|');
         }
