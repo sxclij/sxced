@@ -5,6 +5,7 @@
 
 #define term_capacity 65536
 #define nodes_capacity 65536
+#define file_capacity 65536
 #define rendering_size_y 11
 #define renderingbody_size_y 10
 
@@ -60,6 +61,7 @@ static struct global {
     uint32_t nodes_passive_size;
     enum mode mode;
     uint32_t input_str4;
+    char* file_path;
 } g;
 
 void node_insert(char ch) {
@@ -88,6 +90,31 @@ void node_delete() {
     }
 }
 
+void file_open(const char* path) {
+    char buf[file_capacity];
+    FILE* fp = fopen(path, "r");
+    uint32_t n = fread(buf, sizeof(char), file_capacity, fp);
+    for (uint32_t i = 0; i < n; i++) {
+        node_insert(buf[i]);
+    }
+    fclose(fp);
+}
+void file_save(const char* path) {
+    char buf[file_capacity];
+    uint32_t i;
+    struct node* this = g.nodes_target;
+    while (this->prev != NULL) {
+        this = this->prev;
+    }
+    for (i = 0; this->next != NULL; i++) {
+        buf[i] = this->ch;
+        this = this->next;
+    }
+    FILE* fp = fopen(path, "w");
+    fwrite(buf, sizeof(char), i, fp);
+    fclose(fp);
+}
+
 void input_normal(uint32_t str) {
     uint32_t a = str % 65536;
     switch (str % 256) {
@@ -109,6 +136,9 @@ void input_normal(uint32_t str) {
         case 'x':
             input_normal('l');
             node_delete(127);
+            break;
+        case 's':
+            file_save(g.file_path);
             break;
         case 'i':
             g.mode = mode_insert;
@@ -187,10 +217,10 @@ void rendering_top() {
 }
 void rendering_body() {
     struct node* this = g.nodes_target;
-    uint32_t y = renderingbody_size_y-3;
+    uint32_t y = renderingbody_size_y - 3;
     while (1) {
         if (this->prev == NULL) {
-            y=0;
+            y = 0;
             break;
         }
         if (y == 0 && this->prev->ch == '\n') {
@@ -242,8 +272,16 @@ void init() {
     g.mode = mode_insert;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     init();
+
+    if (argc == 2) {
+        g.file_path = argv[1];
+        file_open(g.file_path);
+    }
+    g.file_path = "main.c";
+    file_open(g.file_path);
+
     while (1) {
         update();
     }
