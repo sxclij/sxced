@@ -265,8 +265,6 @@ int main(int argc, char* argv[]) {
         g.file_path = argv[1];
         file_open(g.file_path);
     }
-    g.file_path = "main.c";
-    file_open(g.file_path);
 
     while (1) {
         update();
