@@ -102,7 +102,6 @@ void file_save(const char* path) {
 }
 
 void input_normal(uint32_t str) {
-    uint32_t a = str % 65536;
     switch (str % 256) {
         case 'h':
             if (g.nodes_target->prev != NULL) {
