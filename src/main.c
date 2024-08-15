@@ -113,8 +113,6 @@ void input_normal(uint32_t str) {
                 g.nodes_target = g.nodes_target->next;
             }
             break;
-        case 'j':
-            break;
         case 'G':
             while (g.nodes_target->next != NULL) {
                 g.nodes_target = g.nodes_target->next;
